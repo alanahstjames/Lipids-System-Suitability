@@ -36,14 +36,14 @@ library(htmlwidgets)
 #read in data
 #take skyline report file
 #master <- read.csv("F:\\MUMS data\\MUMS_LTRS\\2022-10-10_xskylineR_1_MUMS_LTRS_extended_boundaries.csv")
-master <- read.csv("D:\\R2D2 vs C3PO comparison\\2022-11-15_xskylineR_1_R2D2 vs C3PO RnD.csv")
+master <- read.csv("data\\RLIP PLIP comparison/2022-11-15_xskylineR_1_R2D2 vs C3PO RnD.csv")
 #colnames(master) <- gsub('skyline_report.','', colnames(master))
 
 #read in transition list
-transition_list <- read.csv("D:\\20220608-BusseltonComparison\\2021-09-21-LGW_lipid_mrm_transition_data.csv")
+transition_list <- read.csv("methods/2021-09-21-LGW_lipid_mrm_transition_data.csv")
 
-pos_method <- read_excel("D:\\R2D2 vs C3PO comparison\\methods\\R2D2_pos.xlsx", col_names = FALSE)
-neg_method <- read_excel("D:\\R2D2 vs C3PO comparison\\methods\\R2D2_neg.xlsx", col_names = FALSE)
+pos_method <- read_excel("methods\\R2D2_pos.xlsx", col_names = FALSE)
+neg_method <- read_excel("methods\\R2D2_neg.xlsx", col_names = FALSE)
 
 pos_SILs <- unique(pos_method$...6) %>% 
   subset(grepl('.IS', pos_method$...6))
