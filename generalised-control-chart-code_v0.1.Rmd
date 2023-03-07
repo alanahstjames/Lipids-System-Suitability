@@ -317,7 +317,7 @@ figAnalytes
 #make data frame for all LTRs, with peak area for analogue and corresponding ISTD
 analogue_response_ratio_array <- data.frame(analogues)
 #rename 'area' as 'analogue_area'
-colnames(analogue_response_ratio_array)[9] <- "analogue_area"
+colnames(analogue_response_ratio_array)[colnames(analogue_response_ratio_array)=='area'] <- "analogue_area"
 for (x in 1:nrow(analogues)) {
   #fill in ISTD column with each analogue's corresponding ISTD
   analogue_response_ratio_array$ISTD[x] <- ISTD_analogue_array$ISTD[which(ISTD_analogue_array$Analogue==analogues$molecule_name[x])] 
