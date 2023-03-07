@@ -1,0 +1,407 @@
+---
+title: "Generalised Control Chart Code"
+author: "Alanah Grant-St James"
+date: "2023-02-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	fig.height = 25,
+	fig.width = 16, 
+	fig.align = 'center' 
+)
+```
+
+#Library
+```{r}
+#library
+library(readxl)
+library(dplyr)
+library(tibble)
+library(plotly)
+library(mzR)
+library(svDialogs)
+```
+
+
+```{r}
+#load data - won't need to do this in script
+# load("MUMS/data/2023-02-21_skylineR_MUMS_LTR-QC-only_p1-8.rda")
+
+#read in rda
+if(!exists("master_list")){
+  dlg_message("Welcome to Control CharteR! :-)", type = 'ok'); dlg_message("Please run lipid SkylineR notebook prior to running this notebook", type = 'ok'); dlg_message("Now open master_list.rda file produced by SkylineR", type = 'ok')
+  # load rda file
+  load(file = file.choose())
+}
+
+#define 'not in' function
+'%!in%' <- function(x,y)!('%in%'(x,y))
+```
+
+```{r}
+#arrange into the chronological run order
+run_order <- vector("list", length(master_list$project_details$mzml_plate_list))
+run_order_full <- data.frame()
+timestamp <- vector("list", length(master_list$project_details$mzml_plate_list))
+
+for (i in 1:length(master_list$project_details$mzml_plate_list)) {
+  timestamp[[i]] <- data.frame(file_name = NULL, timepoint = NULL)
+  names(timestamp)[[i]] <- master_list$project_details$mzml_plate_list[i]
+  names(run_order)[[i]] <- master_list$project_details$mzml_plate_list[i]
+  for (j in 1:length(master_list$data$mzR[[i]])) {
+    timestamp[[i]][j, 1] <- names(master_list$data$mzR[[i]])[j]
+    timestamp[[i]][j, 2] <- master_list$data$mzR[[i]][[j]]$mzR_timestamp
+  }
+  timestamp[[i]]$run_order <- timestamp[[i]] %>%
+    arrange(timestamp[[i]]$V2)
+  run_order[[i]] <- data.frame(file_name = timestamp[[i]]$run_order$V1, timestamp = timestamp[[i]]$run_order$V2)
+  run_order_full <- rbind(run_order_full, run_order[[i]])
+}
+
+run_order_full <- run_order_full %>% arrange(run_order_full$timestamp)
+
+skyline_data_ordered <- master_list$data$skyline_report %>%
+  arrange(factor(master_list$data$skyline_report$file_name, levels = run_order_full$file_name))
+
+```
+
+```{r}
+transition_list <- read.csv("methods/2021-09-21-LGW_lipid_mrm_transition_data.csv")
+
+pos_method <- read_excel("methods\\R2D2_pos.xlsx", col_names = FALSE)
+neg_method <- read_excel("methods\\R2D2_neg.xlsx", col_names = FALSE)
+
+pos_SILs <- unique(pos_method$...6) %>% 
+  subset(grepl('.IS', pos_method$...6))
+pos_SILs <- gsub(".IS", "", pos_SILs)
+pos_SILs <- gsub("Hd7", "", pos_SILs)
+pos_SILs <- gsub("Hd9", "", pos_SILs)
+pos_SILs <- gsub("H_d7", "", pos_SILs)
+pos_SILs <- gsub("H_d9", "", pos_SILs)
+pos_SILs <- gsub("NH4d7", "", pos_SILs)
+pos_SILs <- gsub("NH4d9", "", pos_SILs)
+pos_SILs <- gsub("[+]", "", pos_SILs)
+pos_SILs <- gsub("/", "_", pos_SILs)
+
+neg_SILs <- unique(neg_method$...6) %>% 
+  subset(grepl('.IS', neg_method$...6))
+neg_SILs <- gsub(".IS", "", neg_SILs)
+neg_SILs <- gsub("Hd5", "", neg_SILs)
+neg_SILs <- gsub("Hd7", "", neg_SILs)
+neg_SILs <- gsub("Hd9", "", neg_SILs)
+neg_SILs <- gsub("AcOd9", "", neg_SILs)
+neg_SILs <- gsub("AcOd7", "", neg_SILs)
+neg_SILs <- gsub("[+|-]", "", neg_SILs)
+neg_SILs <- gsub("/", "_", neg_SILs)
+```
+```{r}
+#set plate parameters for plate_lines in graphs
+n_plates <- length(master_list$project_details$mzml_plate_list)
+n_samples_per_plate <- NULL
+n_QCs_per_plate <- NULL
+first_timestamp <- data.frame()
+for (x in 1:n_plates) {
+  #order by first timepoint in each plate
+  first_timestamp <- rbind(first_timestamp, data.frame(plate_name = master_list$project_details$mzml_plate_list[x], timestamp = timestamp[[x]]$run_order$V2[1]))
+}
+
+first_timestamp <- first_timestamp %>% arrange(first_timestamp$timestamp)
+
+for (x in first_timestamp$plate_name) {
+  n_samples_in_plate <- length(master_list$data$mzR[[x]])
+  n_samples_per_plate <- c(n_samples_per_plate, n_samples_in_plate)
+  
+  n_QCs_in_plate <- length(master_list$data$mzR[[x]][grepl(master_list$project_details$qc_type, names(master_list$data$mzR[[x]]))==TRUE])
+  n_QCs_per_plate <- c(n_QCs_per_plate, n_QCs_in_plate)
+}
+```
+
+```{r include=FALSE}
+#keep only QC samples
+master <- skyline_data_ordered %>% add_column(type = FALSE)
+
+master$type[grepl(master_list$project_details$qc_type, master$file_name)] <- "QC"
+master$type[master$type==FALSE] <- "sample"
+
+QCs <- master[master$type == "QC", ]
+#keep only internal standards values
+master_SIL <- master[grepl("SIL", master$molecule_name)==TRUE,]
+QCs_SIL <- QCs[grepl("SIL", QCs$molecule_name)==TRUE,]
+```
+
+```{r}
+#list of all ISTD
+ISTDs <- unique(QCs_SIL$molecule_name)
+#find analogue names from list of ISTDs
+analogue_names1 <- gsub('SIL_','', ISTDs)
+analogue_names_final <- gsub('_d.*', '', analogue_names1)
+
+#print ISTDs that don't have analogues in the method
+missing_analogues <- setdiff(analogue_names_final, unique(master$molecule_name))
+message("indices of missing analogues")
+missing_analogues_idx <- which(analogue_names_final %!in% unique(master$molecule_name))
+missing_analogues_idx
+message("ISTDs that have no analogue")
+ISTDs_missing_analogues <- ISTDs[missing_analogues_idx]
+ISTDs_missing_analogues
+
+#make array of ISTDs and their analogues
+ISTD_analogue_array <- data.frame(ISTD = ISTDs, Analogue = analogue_names_final)
+
+#manually change analyte for those ISTDs with no analogue
+for (x in 1:length(ISTDs)) {
+  if (x %in% missing_analogues_idx) {
+    ISTD_analogue_array[x, 2] <- 'remove'
+  }
+}
+#replace any 'remove' for NA
+for (x in 1:nrow(ISTD_analogue_array)) {
+  if (ISTD_analogue_array[x, 2] %in% c("remove", "'remove'")) {
+    ISTD_analogue_array[x, 2] <- NA
+  }
+}
+
+#replace SIL_SM(18:1)_d9_SPLASH row with NA as there are two ISTDs for this analyte
+ISTD_analogue_array[which(ISTD_analogue_array[, 1]=="SIL_SM(18:1)_d9_SPLASH"), ] =NA
+
+#remove NA rows
+ISTD_analogue_array <- na.omit(ISTD_analogue_array)
+```
+```{r echo=FALSE, warning=FALSE}
+samples <- unique(master$file_name)
+SILs <- unique(ISTD_analogue_array$ISTD)
+#adjust name of ISTDs to make them shorter
+SILs_edited <- gsub("_d5", "", SILs)
+SILs_edited <- gsub("_d7", "", SILs_edited)
+SILs_edited <- gsub("_d9", "", SILs_edited)
+SILs_edited <- gsub("SIL_", "", SILs_edited)
+
+sample_id <- c(1:length(samples))
+
+plot_list <- vector(mode = "list", length = 0)
+plate_lines <- vector(mode = "list", length = 0)
+
+for (x in 1:length(SILs)) { #for each ISTD
+  temp_data <- master_SIL[master_SIL$molecule_name==SILs[x],]
+  
+  #find any missing rows in temp_data (samples that don't have a value for the SIL)
+  missing_sample_index <- which(samples %!in% unique(temp_data$file_name))
+  #insert NA row for this sample in temp_data
+  if (length(missing_sample_index > 0)) {
+  missing_row <- data.frame(File.Name = samples[samples %!in% unique(temp_data$file_name)==TRUE],
+                            Molecule.List.Name = unique(temp_data$molecule_list_name),
+                            Molecule.Name = unique(temp_data$molecule_name),
+                            Precursor.Mz = unique(temp_data$precursor_mz),
+                            Product.Mz = unique(temp_data$product_mz),
+                            Retention.Time = NA,
+                            Start.Time = NA,
+                            End.Time = NA,
+                            Area = NA,
+                            Height = NA
+                            )
+  temp_data <- temp_data %>% add_row(missing_row, .before = missing_sample_index)
+  }
+  missing_sample_index = NULL
+  
+  sample_count <- 0
+  
+  for (y in 1:n_plates) {
+    sample_count = sample_count + n_samples_per_plate[y]
+    plate_lines[[y]] <- list(type='line', 
+                      x0=sample_count+0.5, 
+                      x1=sample_count+0.5, 
+                      y0=0, 
+                      y1=max(as.numeric(temp_data$area), na.rm = TRUE),
+                      line=list(dash='dot', width=2, color = '#808080'))
+  }
+  color_value <- ifelse(SILs_edited[x] %in% pos_SILs, '#FF0000', '#0000FF')
+  
+  plot <- plot_ly(x = sample_id, 
+                  y = temp_data$area, 
+                  type = 'scatter', 
+                  mode = 'markers',
+                  color = temp_data$type,
+                  text = paste(temp_data$file_name),
+                  showlegend = FALSE
+                  )%>%
+                    layout(title = "ISTD peak area",
+                    shapes = plate_lines, 
+                    annotations = list(x = 0.5 , y = 1.1, showarrow = F, 
+                                       xref='paper', yref='paper',
+                                       xanchor='center',
+                                       text = SILs[x], 
+                                       font = list(color = color_value)),
+                    yaxis = list(rangemode = 'tozero'))
+  
+  plot_list = c(plot_list, list(plot))
+}
+
+fig_ISTD <- subplot(plot_list, nrows = 14)
+fig_ISTD
+
+```
+
+```{r echo=FALSE, warning=FALSE}
+#use only analogue analytes
+analogues <- master[master$molecule_name %in% ISTD_analogue_array$Analogue, ]
+# plot peak area of analogue analytes in LTRs
+sample_id <- c(1:sum(n_samples_per_plate))
+
+plot_list <- vector(mode = "list", length = 0)
+plate_lines <- vector(mode = "list", length = 0)
+
+for (x in 1:length(SILs)) { #for each ISTD
+  temp_data<- analogues[analogues$molecule_name==ISTD_analogue_array$Analogue[x],]
+  temp_data$missing <- FALSE
+  # put in NULL row if any samples are missing this analogue
+  if (nrow(temp_data) != length(sample_id)) {
+    missing_file_names <- setdiff(unique(analogues$file_name), temp_data$file_name)
+    for (z in 1:length(missing_file_names)) {
+      row <- which(unique(analogues$file_name) == missing_file_names[z])
+      temp_data <- temp_data %>% add_row(file_name = missing_file_names[z], 
+                            molecule_list_name = temp_data$molecule_list_name[1], 
+                            molecule_name = temp_data$molecule_name[1], 
+                            precursor_mz = temp_data$precursor_mz[1], 
+                            product_mz = temp_data$product_mz[1], 
+                            retention_time = NULL, 
+                            start_time = NULL, 
+                            end_time = NULL, 
+                            area = NULL, 
+                            height = NULL, 
+                            missing = TRUE, .before = row+1)
+    }
+  }
+  # #reorder p011 to be at the end as this was the order of acquisition
+  # temp_data <- rbind(temp_data_unordered[9:80,], temp_data_unordered[1:8,])
+  sample_count <- 0
+  
+  for (y in 1:n_plates) {
+    sample_count = sample_count + n_samples_per_plate[y]
+    plate_lines[[y]] <- list(type='line', 
+                      x0=sample_count+0.5, 
+                      x1=sample_count+0.5, 
+                      y0=0, 
+                      y1=max(as.numeric(temp_data$area), na.rm = TRUE),
+                      line=list(dash='dot', width=2, color = '#808080'))
+  }
+  color_value <- ifelse(SILs_edited[x] %in% pos_SILs, '#FF0000', '#0000FF')
+  
+  plot <- plot_ly(x = sample_id, 
+                  y = temp_data$area, 
+                  type = 'scatter', 
+                  mode = 'markers', 
+                  text = paste(temp_data$file_name),
+                  color = temp_data$type,
+                  showlegend = FALSE
+                  )%>%
+                    layout(title = "Analogue analyte peak area",
+                    shapes = plate_lines, 
+                    annotations = list(x = 0.5 , y = 1.1, showarrow = F, 
+                                       xref='paper', yref='paper',
+                                       xanchor='center',
+                                       text = ISTD_analogue_array$Analogue[x], 
+                                       font = list(color = color_value)),
+                    yaxis = list(rangemode = 'tozero'))
+  
+  plot_list = c(plot_list, list(plot))
+}
+
+figAnalytes <- subplot(plot_list, nrows = 14)
+figAnalytes
+
+```
+```{r include=FALSE}
+#make data frame for all LTRs, with peak area for analogue and corresponding ISTD
+analogue_response_ratio_array <- data.frame(analogues)
+#rename 'area' as 'analogue_area'
+colnames(analogue_response_ratio_array)[9] <- "analogue_area"
+for (x in 1:nrow(analogues)) {
+  #fill in ISTD column with each analogue's corresponding ISTD
+  analogue_response_ratio_array$ISTD[x] <- ISTD_analogue_array$ISTD[which(ISTD_analogue_array$Analogue==analogues$molecule_name[x])] 
+  #fill in ISTD_area column with the corresponding ISTD's peak area
+  analogue_response_ratio_array$ISTD_area[x] <- ifelse(length(which(master_SIL$file_name == analogue_response_ratio_array$file_name[x] & master_SIL$molecule_name == analogue_response_ratio_array$ISTD[x])) > 0,
+                                                       master_SIL[which(master_SIL$file_name == analogue_response_ratio_array$file_name[x] & master_SIL$molecule_name == analogue_response_ratio_array$ISTD[x]), 'area'],
+                                                       0)
+}
+
+#fill in response_ratio column with analogue_area/ISTD_area
+analogue_response_ratio_array$response_ratio <- analogue_response_ratio_array$analogue_area/as.numeric(analogue_response_ratio_array$ISTD_area)
+
+#change Inf to NULL
+analogue_response_ratio_array$response_ratio[is.infinite(analogue_response_ratio_array$response_ratio)] <- NA
+
+```
+
+```{r echo=FALSE, warning=FALSE}
+# plot response ratio of analogue analytes in LTRs
+sample_id <- c(1:sum(n_samples_per_plate))
+
+plot_list <- vector(mode = "list", length = 0)
+plate_lines <- vector(mode = "list", length = 0)
+
+for (x in 1:length(SILs)) { #for each analogue
+  temp_data <- analogue_response_ratio_array[analogue_response_ratio_array$molecule_name==ISTD_analogue_array$Analogue[x],]
+  temp_data$missing <- FALSE
+  # put in NULL row if any samples are missing this analogue
+  if (nrow(temp_data) != length(sample_id)) {
+    missing_file_names <- setdiff(unique(analogues$file_name), temp_data$file_name)
+    for (z in 1:length(missing_file_names)) {
+      row <- which(unique(analogues$file_name) == missing_file_names[z])
+      temp_data <- temp_data %>% add_row(file_name = missing_file_names[z], 
+                            molecule_list_name = temp_data$molecule_list_name[1], 
+                            molecule_name = temp_data$molecule_name[1], 
+                            precursor_mz = temp_data$precursor_mz[1], 
+                            product_mz = temp_data$product_mz[1], 
+                            retention_time = NULL, 
+                            start_time = NULL, 
+                            end_time = NULL, 
+                            analogue_area = NULL, 
+                            height = NULL, 
+                            ISTD = temp_data$ISTD[1], 
+                            ISTD_area = NULL, 
+                            response_ratio = NULL,
+                            missing = TRUE, .before = row+1)
+    }
+  }
+  sample_count <- 0
+  
+  for (y in 1:n_plates) {
+    sample_count = sample_count + n_samples_per_plate[y]
+    plate_lines[[y]] <- list(type='line',
+                      x0=sample_count+0.5,
+                      x1=sample_count+0.5,
+                      y0=0,
+                      y1=max(as.numeric(temp_data$response_ratio), na.rm = TRUE),
+                      line=list(dash='dot', width=2, color = '#808080'))
+  }
+  color_value <- ifelse(SILs_edited[x] %in% pos_SILs, '#FF0000', '#0000FF')
+  
+  plot <- plot_ly(x = sample_id, 
+                  y = as.numeric(temp_data$response_ratio), 
+                  type = 'scatter', 
+                  mode = 'markers', 
+                  text = paste(temp_data$file_name),
+                  color = temp_data$type,
+                  showlegend = FALSE
+                  )%>%
+                    layout(title = paste("Response Ratios"),
+                    shapes = plate_lines, 
+                    annotations = list(x = 0.5 , y = 1.1, showarrow = F, 
+                                       xref='paper', yref='paper',
+                                       xanchor='center',
+                                       text = paste(unique(analogue_response_ratio_array$molecule_name)[x], " with ", unique(analogue_response_ratio_array$ISTD)[x]),
+                                       font = list(color = color_value)
+                                       ),
+                    yaxis = list(rangemode = 'tozero'))
+  
+  plot_list = c(plot_list, list(plot))
+}
+
+figResponseRatio <- subplot(plot_list, nrows = 14)
+figResponseRatio
+```
+
+
