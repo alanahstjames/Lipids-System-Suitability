@@ -352,7 +352,12 @@ for (x in 1:length(SILs)) { #for each analogue
 figResponseRatio <- subplot(plot_list, nrows = 14)
 
 ##render html
-rmarkdown::render(input = "L:/control-chart-code/control-chart-template_v0.1.R",
+fileConn<-file(paste0(master_list$project_details$project_dir, "/html_report/lipid_control_charteR_report_templatev3.23.R"))
+writeLines(httr::GET(url = "https://github.com/alanahstjames/Lipids-System-Suitability/blob/master/control-chart-template_v0.1.R") %>%
+             httr::content(as = "text"), fileConn)
+close(fileConn)
+
+rmarkdown::render(input = paste0(master_list$project_details$project_dir, "/html_report/lipid_control_charteR_report_templatev3.23.R"),
                   output_format = "html_document",
                   output_dir = paste0(master_list$project_details$project_dir, "/html_report"),
                   output_file = paste0(Sys.Date(), "_", master_list$project_details$project_name, "_lipid_control_charteR_report_v3.23.html")
