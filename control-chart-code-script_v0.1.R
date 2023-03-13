@@ -353,7 +353,7 @@ figResponseRatio <- subplot(plot_list, nrows = 14)
 
 ##render html
 fileConn<-file(paste0(master_list$project_details$project_dir, "/html_report/lipid_control_charteR_report_templatev3.23.R"))
-writeLines(httr::GET(url = "https://github.com/alanahstjames/Lipids-System-Suitability/blob/master/control-chart-template_v0.1.R") %>%
+writeLines(httr::GET(url = "https://raw.githubusercontent.com/alanahstjames/Lipids-System-Suitability/master/control-chart-template_v0.1.R") %>%
              httr::content(as = "text"), fileConn)
 close(fileConn)
 
