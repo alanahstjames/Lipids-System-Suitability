@@ -7,13 +7,13 @@ if(length(packages_to_load)) {
 }
 
 dlg_message("Welcome to rda combineR! :-)", type = 'ok'); 
-dlg_message("Put all SkylineR rda files into one folder called 'rda' in the project directory.", type = 'ok'); 
+dlg_message("Put all SkylineR rda files into one folder called 'rda', and put that folder in a folder called 'data' in the project directory.", type = 'ok'); 
 dir <- choose.dir(default = "", caption = "Select project directory.")
 proj_name <- dlgInput(message = "What would you like to call this project?", default = sapply(strsplit(dir, split= "\\", fixed = TRUE), tail, 1L))$res
-rdas <- list.files(path = paste(dir, "/rda", sep = ""))
+rdas <- list.files(path = paste(dir, "/data/rda", sep = ""))
 full_list <- vector("list", length(rdas))
 for (n in 1:length(rdas)) {
-  load(paste(dir, '/rda/', rdas[n], sep = ""))
+  load(paste(dir, '/data/rda/', rdas[n], sep = ""))
   full_list[[n]] <- master_list
 }
 rm(master_list)
@@ -79,3 +79,5 @@ final_list$process_lists <- list()
 master_list <- final_list
 #save master_list
 save(master_list, file = paste(dir, "/", Sys.Date(), "_", "rdaCombineR", "_", proj_name, ".rda", sep = ""))
+
+dir.create(paste0(dir, "/html_report"))
