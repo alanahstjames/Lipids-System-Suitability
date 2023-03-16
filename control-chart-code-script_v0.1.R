@@ -91,7 +91,7 @@ if(all_samples_or_QC$res == "all_samples") {
   master <- skyline_data_ordered %>% add_column(type = FALSE)
 }
 if(all_samples_or_QC$res == "just_QCs") {
-  master <- skyline_data_ordered[grepl(master_list$project_details$qc_type, skyline_data_ordered$file_name), ] %>% add_column(type = FALSE)
+  master <- skyline_data_ordered[grepl(master_list$project_details$qc_type, skyline_data_ordered$file_name)==TRUE, ] %>% add_column(type = FALSE)
 }
 
 master$type[grepl(master_list$project_details$qc_type, master$file_name)] <- "QC"
