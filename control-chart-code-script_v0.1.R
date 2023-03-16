@@ -18,6 +18,8 @@ if(!exists("master_list")){
   # load rda file
   load(file = file.choose())
 }
+
+all_samples_or_QC <- dlgInput(message = "Do you want the control chart for \"all_samples\" or \"just_QCs\"?", default = "all_samples/just_QCs")
 ##Define functions
 
 #define 'not in' function
@@ -84,8 +86,13 @@ for (x in first_timestamp$plate_name) {
   n_QCs_per_plate <- c(n_QCs_per_plate, n_QCs_in_plate)
 }
 
-#keep only QC samples
-master <- skyline_data_ordered %>% add_column(type = FALSE)
+#keep either all samples or just QCs
+if(all_samples_or_QC == "all_samples") {
+  master <- skyline_data_ordered %>% add_column(type = FALSE)
+}
+if(all_samples_or_QC == "just_QCs") {
+  master <- skyline_data_ordered[grepl(master_list$project_details$qc_type, skyline_data_ordered$file_name), ] %>% add_column(type = FALSE)
+}
 
 master$type[grepl(master_list$project_details$qc_type, master$file_name)] <- "QC"
 master$type[master$type==FALSE] <- "sample"
