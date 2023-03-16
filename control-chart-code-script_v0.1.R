@@ -217,22 +217,23 @@ if(master_list$project_details$is_ver == "v2") {
   ISTD_analogue_array[64, 2] <- "PS(16:0_20:3)"
   ISTD_analogue_array[65, 2] <- "PS(16:0_22:4)" 
   
-  ISTD_analogue_array[66, 2] <- NA 
-  ISTD_analogue_array[67, 2] <- "SM(16:0)"
-  ISTD_analogue_array[68, 2] <- "SM(18:1)"
-  ISTD_analogue_array[69, 2] <- "SM(20:1)"
-  ISTD_analogue_array[70, 2] <- "SM(22:1)"
-  ISTD_analogue_array[71, 2] <- "SM(24:1)"
+  ISTD_analogue_array[66, 2] <- "TAG(40:0_FA14:0)"
+  ISTD_analogue_array[67, 2] <- "TAG(44:1_FA14:0)"
+  ISTD_analogue_array[68, 2] <- "TAG(45:1_FA16:0)" 
+  ISTD_analogue_array[69, 2] <- "TAG(47:1_FA16:0)"  
+  ISTD_analogue_array[70, 2] <- "TAG(49:1_FA16:0)"
+  ISTD_analogue_array[71, 2] <- "TAG(51:2_FA16:0)"
+  ISTD_analogue_array[72, 2] <- "TAG(53:3_FA18:2)"
+  ISTD_analogue_array[73, 2] <- "TAG(55:4_FA18:1)"
+  ISTD_analogue_array[74, 2] <- "TAG(57:3_FA18:2)"
   
-  ISTD_analogue_array[72, 2] <- "TAG(40:0_FA14:0)"
-  ISTD_analogue_array[73, 2] <- "TAG(44:1_FA14:0)"
-  ISTD_analogue_array[74, 2] <- "TAG(45:1_FA16:0)" 
-  ISTD_analogue_array[75, 2] <- "TAG(47:1_FA16:0)"  
-  ISTD_analogue_array[76, 2] <- "TAG(49:1_FA16:0)"
-  ISTD_analogue_array[77, 2] <- "TAG(51:2_FA16:0)"
-  ISTD_analogue_array[78, 2] <- "TAG(53:3_FA18:2)"
-  ISTD_analogue_array[79, 2] <- "TAG(55:4_FA18:1)"
-  ISTD_analogue_array[80, 2] <- "TAG(57:3_FA18:2)"
+  ISTD_analogue_array[75, 2] <- NA 
+  ISTD_analogue_array[76, 2] <- "SM(16:0)"
+  ISTD_analogue_array[77, 2] <- "SM(18:1)"
+  ISTD_analogue_array[78, 2] <- "SM(20:1)"
+  ISTD_analogue_array[79, 2] <- "SM(22:1)"
+  ISTD_analogue_array[80, 2] <- "SM(24:1)"
+
 }
 #remove NA rows
 ISTD_analogue_array <- na.omit(ISTD_analogue_array)
