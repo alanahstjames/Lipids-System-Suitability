@@ -217,7 +217,7 @@ if(master_list$project_details$is_ver == "v2") {
   ISTD_analogue_array[64, 2] <- "PS(16:0_20:3)"
   ISTD_analogue_array[65, 2] <- "PS(16:0_22:4)" 
   
-  ISTD_analogue_array[66, 2] <- "SM(14:0)"  
+  ISTD_analogue_array[66, 2] <- NA 
   ISTD_analogue_array[67, 2] <- "SM(16:0)"
   ISTD_analogue_array[68, 2] <- "SM(18:1)"
   ISTD_analogue_array[69, 2] <- "SM(20:1)"
@@ -344,8 +344,7 @@ for (x in 1:length(SILs)) { #for each ISTD
                                          missing = TRUE, .before = row+1)
     }
   }
-  # #reorder p011 to be at the end as this was the order of acquisition
-  # temp_data <- rbind(temp_data_unordered[9:80,], temp_data_unordered[1:8,])
+
   sample_count <- 0
   
   for (y in 1:n_plates) {
