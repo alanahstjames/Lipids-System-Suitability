@@ -326,7 +326,7 @@ if(master_list$project_details$is_ver == "v2") {
 #use only analogue analytes
 analogues <- master[master$molecule_name %in% ISTD_analogue_array$Analogue, ]
 # plot peak area of analogue analytes in LTRs
-sample_id <- c(1:sum(n_samples_per_plate))
+sample_id <- c(1:length(samples))
 
 plot_list <- vector(mode = "list", length = 0)
 plate_lines <- vector(mode = "list", length = 0)
@@ -416,7 +416,7 @@ analogue_response_ratio_array$response_ratio <- analogue_response_ratio_array$an
 analogue_response_ratio_array$response_ratio[is.infinite(analogue_response_ratio_array$response_ratio)] <- NA
 
 ##Plot response ratios
-sample_id <- c(1:sum(n_samples_per_plate))
+sample_id <- c(1:length(samples))
 
 plot_list <- vector(mode = "list", length = 0)
 plate_lines <- vector(mode = "list", length = 0)
