@@ -509,15 +509,29 @@ writeLines(httr::GET(url = "https://raw.githubusercontent.com/alanahstjames/Lipi
              httr::content(as = "text"), fileConn)
 close(fileConn)
 
-rmarkdown::render(input = paste0(master_list$project_details$project_dir, "/html_report/lipid_control_charteR_report_templatev3.23.R"),
-                  output_format = "html_document",
-                  output_dir = paste0(master_list$project_details$project_dir, "/html_report"),
-                  output_file = paste0(Sys.Date(), "_", master_list$project_details$project_name, "_lipid_control_charteR_report_v3.23.html")
-)
-
-browseURL(url = paste0(master_list$project_details$project_dir, 
-                       "/html_report/",
-                       Sys.Date(), "_", master_list$project_details$project_name, "_lipid_control_charteR_report_v3.23.html")
-)
+if(all_samples_or_QC$res == "all_samples") {
+  rmarkdown::render(input = paste0(master_list$project_details$project_dir, "/html_report/lipid_control_charteR_report_templatev3.23.R"),
+                    output_format = "html_document",
+                    output_dir = paste0(master_list$project_details$project_dir, "/html_report"),
+                    output_file = paste0(Sys.Date(), "_", master_list$project_details$project_name, "_lipid_control_charteR_all-samples_report_v3.23.html")
+  )
+  
+  browseURL(url = paste0(master_list$project_details$project_dir, 
+                         "/html_report/",
+                         Sys.Date(), "_", master_list$project_details$project_name, "_lipid_control_charteR_all-samples_report_v3.23.html")
+  )
+}
+if(all_samples_or_QC$res == "just_QCs") {
+  rmarkdown::render(input = paste0(master_list$project_details$project_dir, "/html_report/lipid_control_charteR_report_templatev3.23.R"),
+                    output_format = "html_document",
+                    output_dir = paste0(master_list$project_details$project_dir, "/html_report"),
+                    output_file = paste0(Sys.Date(), "_", master_list$project_details$project_name, "_lipid_control_charteR_just-QCs_report_v3.23.html")
+  )
+  
+  browseURL(url = paste0(master_list$project_details$project_dir, 
+                         "/html_report/",
+                         Sys.Date(), "_", master_list$project_details$project_name, "_lipid_control_charteR_just-QCs_report_v3.23.html")
+  )
+}
 
 rm(list = c(ls()[which(ls() != "master_list")]))
