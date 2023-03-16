@@ -476,7 +476,7 @@ if(master_list$project_details$is_ver == "v1") {
 }
 
 if(master_list$project_details$is_ver == "v2") {
-  figResponseRatio <- subplot(plot_list, nrows = 20)
+  figResponseRatio <- subplot(plot_list, nrows = 20, heights = 3)
 }
 
 ##render html
