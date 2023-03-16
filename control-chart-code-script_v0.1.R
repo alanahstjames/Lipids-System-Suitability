@@ -310,7 +310,7 @@ if(master_list$project_details$is_ver == "v1") {
 }
 
 if(master_list$project_details$is_ver == "v2") {
-  fig_ISTD <- subplot(plot_list, nrows = 20)
+  fig_ISTD <- subplot(plot_list, nrows = 20, margin = c(0.01, 0.01, 0.01, 0.01))
 }
 
 
@@ -382,7 +382,7 @@ if(master_list$project_details$is_ver == "v1") {
 }
 
 if(master_list$project_details$is_ver == "v2") {
-  figAnalytes <- subplot(plot_list, nrows = 20)
+  figAnalytes <- subplot(plot_list, nrows = 20, margin = c(0.01, 0.01, 0.01, 0.01))
 }
 
 
@@ -476,7 +476,7 @@ if(master_list$project_details$is_ver == "v1") {
 }
 
 if(master_list$project_details$is_ver == "v2") {
-  figResponseRatio <- subplot(plot_list, nrows = 20, margin = c(1, 1, 0.5, 0.5))
+  figResponseRatio <- subplot(plot_list, nrows = 20, margin = c(0.01, 0.01, 0.01, 0.01))
 }
 
 ##render html
