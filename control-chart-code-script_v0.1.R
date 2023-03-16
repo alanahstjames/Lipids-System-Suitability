@@ -284,7 +284,13 @@ for (x in 1:length(SILs)) { #for each ISTD
   sample_count <- 0
   
   for (y in 1:n_plates) {
-    sample_count = sample_count + n_samples_per_plate[y]
+    if(all_samples_or_QC$res == "all_samples") {
+      sample_count = sample_count + n_samples_per_plate[y]
+    }
+    if(all_samples_or_QC$res == "just_QCs") {
+      sample_count = sample_count + n_QCs_per_plate[y]
+    }
+    
     plate_lines[[y]] <- list(type='line', 
                              x0=sample_count+0.5, 
                              x1=sample_count+0.5, 
@@ -356,7 +362,12 @@ for (x in 1:length(SILs)) { #for each ISTD
   sample_count <- 0
   
   for (y in 1:n_plates) {
-    sample_count = sample_count + n_samples_per_plate[y]
+    if(all_samples_or_QC$res == "all_samples") {
+      sample_count = sample_count + n_samples_per_plate[y]
+    }
+    if(all_samples_or_QC$res == "just_QCs") {
+      sample_count = sample_count + n_QCs_per_plate[y]
+    }
     plate_lines[[y]] <- list(type='line', 
                              x0=sample_count+0.5, 
                              x1=sample_count+0.5, 
@@ -448,7 +459,12 @@ for (x in 1:length(SILs)) { #for each analogue
   sample_count <- 0
   
   for (y in 1:n_plates) {
-    sample_count = sample_count + n_samples_per_plate[y]
+    if(all_samples_or_QC$res == "all_samples") {
+      sample_count = sample_count + n_samples_per_plate[y]
+    }
+    if(all_samples_or_QC$res == "just_QCs") {
+      sample_count = sample_count + n_QCs_per_plate[y]
+    }
     plate_lines[[y]] <- list(type='line',
                              x0=sample_count+0.5,
                              x1=sample_count+0.5,
