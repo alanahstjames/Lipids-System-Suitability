@@ -258,16 +258,16 @@ for (x in 1:length(SILs)) { #for each ISTD
   missing_sample_index <- which(samples %!in% unique(temp_data$file_name))
   #insert NA row for this sample in temp_data
   if (length(missing_sample_index > 0)) {
-    missing_row <- data.frame(File.Name = samples[samples %!in% unique(temp_data$file_name)==TRUE],
-                              Molecule.List.Name = unique(temp_data$molecule_list_name),
-                              Molecule.Name = unique(temp_data$molecule_name),
-                              Precursor.Mz = unique(temp_data$precursor_mz),
-                              Product.Mz = unique(temp_data$product_mz),
-                              Retention.Time = NA,
-                              Start.Time = NA,
-                              End.Time = NA,
-                              Area = NA,
-                              Height = NA
+    missing_row <- data.frame(file_name = samples[samples %!in% unique(temp_data$file_name)==TRUE],
+                              molecule_list_name = unique(temp_data$molecule_list_name),
+                              molecule_name = unique(temp_data$molecule_name),
+                              precursor_mz = unique(temp_data$precursor_mz),
+                              product_mz = unique(temp_data$product_mz),
+                              retention_time = NA,
+                              start_time = NA,
+                              end_time = NA,
+                              area = NA,
+                              height = NA
     )
     temp_data <- temp_data %>% add_row(missing_row, .before = missing_sample_index)
   }
